@@ -21,7 +21,7 @@ bench --site (sitename) install-app custom_reports
 ````
 Finally, clear the cache by executing the following command:
 ````
-bench clear-cache
+bench --site (sitename) clear-cache
 ````
 Uninstallation
 To uninstall this custom app, perform the following steps:
