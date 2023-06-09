@@ -1,0 +1,102 @@
+<table class="table">
+	<thead>
+		<tr>
+			<th style="width: 5%">{%= __("Date") %}</th>
+			<th style="width: 5%">{%= __("Due Date") %}</th>
+			<th style="width: 5%">{%= __("Age") %}</th>
+			<th style="width: 15%">{%= __("Reference") %}</th>
+			<th style="width: 10%">{%= __("Remarks") %}</th>
+			<!--<th style="width: 7%">{%= __("Job No") %}</th>-->
+			
+			<!--{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+			 	  <th style="width: 5%">{%= __("Vessel") %}</th>
+			{% endif %}
+
+			{% if filters.company == "PT. ASIA GROW LOGISTICS" %}
+				<th style="width: 5%">{%= __("HBL No.") %}</th>
+			   <th style="width: 5%">{%= __("MBL No.") %}</th>
+			{% endif %}-->
+
+			<th style="width: 25%">{%= __("Party") %}</th>
+			
+			<!--<th style="width: 12%">{%= __("Debit") %}</th>
+			<th style="width: 12%">{%= __("Credit") %}</th>-->
+			<th style="width: 15%">{%= __("Outstanding Amt") %}</th>
+		
+		</tr>
+	</thead>
+	<tbody>
+		{% for(var i=0, l=data.length; i<l; i++) { %}
+			<tr>
+			{% if(data[i].posting_date) { %}
+				<td>{%= frappe.datetime.str_to_user(data[i].posting_date) %}</td>
+				<td>{%= data[i].due_date %}</td>
+				<td>{%= frappe.datetime.get_diff(data[i].due_date, data[i].posting_date) %}</td>
+				<td>{%= data[i].voucher_no %}</td>
+					
+				<td>SALES</td>
+				<!--<td>{%= data[i].job_no %}</td>-->
+				<!--{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+					<td>{%= data[i].vessel %}</td>
+				{% endif %}
+				{% if filters.company == "PT. ASIA GROW LOGISTICS" %}
+					<td>{%= data[i].awb_bl_no %}</td>
+					<td>{%= data[i].obl_no %}</td>
+				{% endif %}
+				-->
+
+				<td>
+					{% if(!(filters.party || filters.account)) { %}
+						{%= data[i].party || data[i].account %}
+						<br>
+					{% } %}
+
+					{{ __("Against") }}: {%= data[i].against %}
+					<br><!-- {%= __("Remarks") %}: {%= data[i].remarks %}-->
+					{% if(data[i].bill_no) { %}
+						<br>{%= __("Supplier Invoice No") %}: {%= data[i].bill_no %}
+					{% } %}
+				</td>
+				<!-- Added to test the account currency display -->
+				
+					<!--<td style="text-align: right">
+
+						{%= format_currency(data[i].debit_in_account_currency, data[i].account_currency) %}</td>
+						{%= data[i].debit_in_account_currency %}-->
+
+					<!--<td style="text-align: right">
+						{%= format_currency(data[i].credit_in_account_currency, data[i].account_currency) %}</td>-->
+
+					<!--{%= data[i].credit_in_account_currency %}</td>-->
+			{% } else { %}
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+					<td></td>
+				{% endif %}
+				{% if filters.company == "PT. ASIA GROW LOGISTICS" %}
+					<td></td>
+					<td></td>
+				{% endif %}
+			
+				<td><b>{%= frappe.format(data[i].account, {fieldtype: "Link"}) || "&nbsp;" %}</b></td>
+				<td style="text-align: right">
+					{%= data[i].account && format_currency(data[i].debit_in_account_currency, data[i].account_currency) %}
+					<!--{%= data[i].account && data[i].debit_in_account_currency %}-->
+				</td>
+				<td style="text-align: right">
+					{%= data[i].account && format_currency(data[i].credit_in_account_currency, data[i].account_currency) %}
+					<!--{%= data[i].account && data[i].credit_in_account_currency %}-->
+				</td>
+			{% } %}
+				<td style="text-align: right">
+					{%= format_currency(data[i].balance_in_account_currency, data[i].account_currency) %}
+					<!--{%= data[i].balance_in_account_currency %}-->
+				</td>
+				
+			</tr>
+		{% } %}
+	</tbody>
+</table>

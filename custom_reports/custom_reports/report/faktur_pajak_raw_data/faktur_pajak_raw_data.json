@@ -1,0 +1,56 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2023-03-30 16:11:28.265178",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [
+  {
+   "fieldname": "date_from",
+   "fieldtype": "Date",
+   "label": "Invoice Date From",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "date_to",
+   "fieldtype": "Date",
+   "label": "Invoice Date To",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Letter Head HTML v1",
+ "modified": "2023-03-31 13:53:13.833547",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Faktur Pajak Raw Data",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "WITH raw_data AS (\r\n  SELECT\r\n    '01' AS `Kode Jenis Transaksi`,\r\n    '0' AS `Kode FP Pengganti`,\r\n    fpn.assigned_tax_number AS `Tax Number`,\r\n    si.mm AS `Masa Pajak`,\r\n    si.yy AS `Tahun Pajak`,\r\n    si.posting_date AS `Tanggal Faktur`,\r\n    c.tax_id AS `Cust. NPWP`,\r\n    si.customer_name AS `Customer Name`,\r\n    c.customer_primary_address AS `Address`,\r\n    si.base_total AS `DPP(IDR)`,\r\n    si.base_total_taxes_and_charges AS `PPN(IDR)`,\r\n    NULL AS `PPnBM (IDR)`,\r\n\t\tNULL AS `Keterangan Tambahan`,\r\n\t\tNULL AS `FG_Uang Muka`,\r\n\t\tNULL AS `Uang Muka DPP`,\r\n\t\tNULL AS `Uang Muka PPN`,\r\n\t\tNULL AS `Uang Muka PPnBM`,\r\n\t\tsi.name AS `Referensi`,\r\n\t\tNULL AS `Diskon`,\r\n\t\tsii.item_code AS `Material`,\r\n\t\tsii.item_name AS `Desc.`,\r\n\t\tsii.base_rate AS `Unit Price`,\r\n\t\tsii.qty AS `Quantity`,\r\n\t\tsii.amount AS `Harga Total`,\r\n\t\tsii.amount AS `DPP`,\r\n\t\ttax.item_tax_amount AS `PPN`,\r\n\t\tNULL AS `Tarif PPnBM`,\r\n\t\tNULL AS `PPnBM`\r\n\r\nFROM \r\n  `tabSales Invoice` AS si\r\nJOIN\r\n  `tabCustomer` AS c ON si.customer = c.name\r\nJOIN\r\n  `tabSales Invoice Item` AS sii ON si.name = sii.parent\r\nJOIN\r\n  `tabSales Taxes and Charges` AS stc ON sii.parent = stc.parent\r\n\r\nLEFT JOIN\r\n  `tabFaktur Pajak Number to Sales Invoice Mapping` AS fpn on fpn.sales_invoice_name = si.name\r\nJOIN\r\n  (\r\n   SELECT stc.parent, JSON_UNQUOTE(JSON_EXTRACT(stc.item_wise_tax_detail, CONCAT('$.', sii.item_code, '[1]'))) AS item_tax_amount, sii.item_code\r\n\tFROM `tabSales Taxes and Charges` AS stc\r\n\tJOIN `tabSales Invoice Item` AS sii ON sii.parent = stc.parent\r\n\r\n  ) AS tax ON tax.parent = si.name AND tax.item_code = sii.item_code\r\n  \r\n WHERE si.posting_date BETWEEN %(date_from)s AND %(date_to)s\r\nORDER BY \r\n  si.name ASC\r\n\r\n),\r\n\r\ntemp_header0 AS (\r\n  SELECT *\r\nFROM (\r\n\tSELECT\r\n'' AS Col1,\r\n'' AS Col2,\r\n'' AS Col3,\r\n'' AS Col4,\r\n'' AS Col5,\r\n'' AS Col6,\r\n'' AS Col7,\r\n'' AS Col8,\r\n'' AS Col9,\r\n'' AS Col10,\r\n'' AS Col11,\r\n'' AS Col12,\r\n'' AS Col13,\r\n'' AS Col14,\r\n'' AS Col15,\r\n'' AS Col16,\r\n'' AS Col17,\r\n'' AS Col18,\r\n'' AS Col19\r\n\r\n) AS t\r\n\r\n),\r\n\r\ntemp_header1 AS (\r\n  SELECT *\r\nFROM (\r\n\tSELECT\r\n\t\t'FK' AS Prefix,         \r\n    'KD_JENIS_TRANSAKSI' AS KD_JENIS_TRANSAKSI,\r\n    'FG_PENGGANTI' AS FG_PENGGANTI,\r\n    'NOMOR_FAKTUR' AS NOMOR_FAKTUR,\r\n    'MASA_PAJAK' AS MASA_PAJAK,\r\n    'TAHUN_PAJAK' AS TAHUN_PAJAK,\r\n    'TANGGAL_FAKTUR' AS TANGGAL_FAKTUR,\r\n    'NPWP' AS NPWP,\r\n    'NAMA' AS NAMA,\r\n    'ALAMAT_LENGKAP' AS ALAMAT_LENGKAP,\r\n    'JUMLAH_DPP' AS JUMLAH_DPP,\r\n    'JUMLAH_PPN' AS JUMLAH_PPN,\r\n    'JUMLAH_PPNBM' AS JUMLAH_PPNBM,\r\n    'ID_KETERANGAN_TAMBAHAN' AS ID_KETERANGAN_TAMBAHAN,\r\n    'FG_UANG_MUKA' AS FG_UANG_MUKA,\r\n    'UANG_MUKA_DPP' AS UANG_MUKA_DPP,\r\n    'UANG_MUKA_PPN' AS UANG_MUKA_PPN,\r\n    'UANG_MUKA_PPNBM' AS UANG_MUKA_PPNBM,\r\n    'REFERENSI' AS REFERENSI\r\n\r\n) AS t\r\n\r\n),\r\ntemp_header2 AS (\r\n    \r\nSELECT *\r\nFROM (\r\n\t\tSELECT\r\n\t\t\t'LT' AS Prefix,\r\n\t\t\t'NPWP' AS NPWP,\r\n\t\t\t'NAMA' AS NAMA,\r\n\t\t\t'JALAN' AS JALAN,\r\n\t\t\t'BLOK' AS BLOK,\r\n\t\t\t'NOMOR' AS NOMOR,\r\n\t\t\t'RT' AS RT,\r\n\t\t\t'RW' AS RW,\r\n\t\t\t'KECAMATAN' AS KECAMATAN,\r\n\t\t\t'KELURAHAN' AS KELURAHAN,\r\n\t\t\t'KABUPATEN' AS KABUPATEN,\r\n\t\t\t'PROPINSI' AS PROPINSI,\r\n\t\t\t'KODE_POS' AS KODE_POS,\r\n\t\t\t'NOMOR_TELEPON' AS NOMOR_TELEPON,\r\n\t\t\t'' AS col1,\r\n\t\t\t'' AS col2,\r\n\t\t\t'' AS col3,\r\n\t\t\t'' AS col4,\r\n\t\t\t'' AS col5\r\n) AS t\r\n\t\t\r\n),\r\ntemp_header3 AS (\r\n\r\nSELECT *\r\nFROM (\r\n\t\tSELECT\r\n\t\t\t'OF' AS Prefix,\r\n\t\t\t'KODE_OBJEK' AS KODE_OBJEK,\r\n\t\t\t'NAMA' AS NAMA,\r\n\t\t\t'HARGA_SATUAN' AS HARGA_SATUAN,\r\n\t\t\t'JUMLAH_BARANG' AS JUMLAH_BARANG,\r\n\t\t\t'HARGA_TOTAL' AS HARGA_TOTAL,\r\n\t\t\t'DISKON' AS DISKON,\r\n\t\t\t'DPP' AS DPP,\r\n\t\t\t'PPN' AS PPN,\r\n\t\t\t'TARIF_PPNBM' AS TARIF_PPNBM,\r\n\t\t\t'PPNBM' AS PPNBM,\r\n\t\t\t'' AS col1,\r\n\t\t\t'' AS col2,\r\n\t\t\t'' AS col3,\r\n\t\t\t'' AS col4,\r\n\t\t\t'' AS col5,\r\n\t\t\t'' AS col6,\r\n\t\t\t'' AS col7,\r\n\t\t\t'' AS col8\r\n) AS t\r\n\r\n),\r\n\r\ntemp_table1 AS (\r\n  SELECT DISTINCT\r\n    'FK' AS `Prefix`,          \r\n    `Kode Jenis Transaksi` AS `KD_JENIS_TRANSAKSI`,\r\n    `Kode FP Pengganti` AS `FG_PENGGANTI`,\r\n    `Tax Number` AS `NOMOR_FAKTUR`,\r\n    `Masa Pajak` AS `MASA_PAJAK`,\r\n    `Tahun Pajak` AS `TAHUN_PAJAK`,\r\n    `Tanggal Faktur` AS `TANGGAL_FAKTUR`,\r\n    `Cust. NPWP` AS `NPWP`,\r\n    `Customer Name` AS `NAMA`,\r\n    `Address` AS `ALAMAT_LENGKAP`,\r\n    `DPP(IDR)` AS `JUMLAH_DPP`,\r\n    `PPN(IDR)` AS `JUMLAH_PPN`,\r\n    `PPnBM (IDR)` AS `JUMLAH_PPNBM`,\r\n    `Keterangan Tambahan` AS `ID_KETERANGAN_TAMBAHAN`,\r\n    `FG_Uang Muka` AS `FG_UANG_MUKA`,\r\n    `Uang Muka DPP` AS `UANG_MUKA_DPP`,\r\n    `Uang Muka PPN` AS `UANG_MUKA_PPN`,\r\n    `Uang Muka PPnBM` AS `UANG_MUKA_PPNBM`,\r\n    `Referensi` AS `REFERENSI`\r\n  FROM `raw_data`\r\n),\r\ntemp_table2 AS (\r\n  SELECT\r\n   'OF' AS `Prefix`,\r\n    `Material` AS `KODE_OBJEK`,\r\n    `Desc.` AS `NAMA`,\r\n    `Unit Price` AS `HARGA_SATUAN`,\r\n    `Quantity` AS `JUMLAH_BARANG`,\r\n    `Harga Total` AS `HARGA_TOTAL`,\r\n    `Diskon` AS `DISKON`,\r\n    `DPP` AS `DPP`,\r\n    `PPN` AS `PPN`,\r\n    `Tarif PPnBM` AS `TARIF_PPNBM`,\r\n    `PPnBM` AS `PPNBM`,\r\n    NULL AS `col1`,\r\n    NULL AS `col2`,\r\n    NULL AS `col3`,\r\n    NULL AS `col4`,\r\n    NULL AS `col5`,\r\n    NULL AS `col6`,\r\n    NULL AS `col7`,\r\n    `Referensi` AS `REFERENSI`\r\n\r\n  FROM `raw_data`\r\n),\r\nnumbered_result AS (\r\n  SELECT *,\r\n            ROW_NUMBER() OVER (ORDER BY union_order) AS row_num\r\n  FROM (\r\n\t\tSELECT *, 0 AS union_order FROM temp_header0\r\n\t\tUNION ALL\r\n\t\t\tSELECT *, 1 AS union_order FROM temp_header1\r\n    UNION ALL\r\n    SELECT *, 2 AS union_order FROM temp_header2\r\n    UNION ALL\r\n    SELECT *, 3 AS union_order FROM temp_header3\r\n    UNION ALL\r\n    SELECT *, 4 AS union_order FROM temp_table1\r\n    UNION ALL\r\n    SELECT *, 5 AS union_order FROM temp_table2\r\n    ) AS union_result\r\n)\r\nSELECT    \r\n    col1 AS \"col1:col1:120\",\r\n    col2 AS \"col2:col2:120\",\r\n    col3 AS \"col3:col3:120\",\r\n    col4 AS \"col4:col4:120\",\r\n    col5 AS \"col5:col5:120\",\r\n    col6 AS \"col6:col6:120\",\r\n    col7 AS \"col7:col7:120\",\r\n    col8 AS \"col8:col8:120\",\r\n    col9 AS \"col9:col9:120\",\r\n    col10 AS \"col10:col10:120\",\r\n    col11 AS \"col11:col11:120\",\r\n    col12 AS \"col12:col12:120\",\r\n    col13 AS \"col13:col13:120\",\r\n    col14 AS \"col14:col14:120\",\r\n    col15 AS \"col15:col15:120\",\r\n    col16 AS \"col16:col16:120\",\r\n    col17 AS \"col17:col17:120\",\r\n    col18 AS \"col18:col18:120\",\r\n    CASE WHEN col1 = 'OF' THEN '' ELSE col19 END AS \"col19:col19:120\"\r\nFROM numbered_result\r\n\r\nORDER BY \r\n    CASE \r\n        WHEN row_num = 1 THEN 1 \r\n        WHEN row_num = 2 THEN 2 \r\n        WHEN row_num = 3 THEN 3 \r\n        WHEN row_num = 4 THEN 4 \r\n        ELSE 5 \r\n    END,\r\n    col19 ASC, \r\n    col1 ASC;\r\n",
+ "ref_doctype": "Sales Invoice",
+ "report_name": "Faktur Pajak Raw Data",
+ "report_script": "frappe.query_reports[\"Faktur Pajak Raw Data\"] = {\r\n\t\"filters\": [\r\n\r\n\t],\r\n\t\"onload\": function(report) {\r\n\t\treport.page.add_action_item(__(\"Reconcile Rows\"), async function() {\r\n\t\t\tconsole.log(\"Reconcile Rows button clicked\");\r\n\t\t});\r\n\t}\r\n}",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Guest"
+  },
+  {
+   "role": "Cust Service (AGL)"
+  },
+  {
+   "role": "Finance Admin (AGL)"
+  }
+ ]
+}

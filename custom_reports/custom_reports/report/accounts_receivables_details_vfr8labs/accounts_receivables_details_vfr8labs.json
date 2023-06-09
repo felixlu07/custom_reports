@@ -1,0 +1,46 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2023-04-13 17:07:06.974251",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [
+  {
+   "fieldname": "job_no",
+   "fieldtype": "Data",
+   "label": "Job No",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Select",
+   "label": "Customer Name",
+   "mandatory": 1,
+   "options": "Customer",
+   "wildcard_filter": 0
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Portrait (letter head only)",
+ "modified": "2023-04-13 17:07:06.974251",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Accounts Receivables Details vFr8labs",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Sales Invoice",
+ "report_name": "Accounts Receivables Details vFr8labs",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  }
+ ]
+}

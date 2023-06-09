@@ -1,0 +1,249 @@
+
+{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+	{% include "custom_reports/report/statement_of_accounts_vfr8labs/statement_of_accounts_vfr8labs_wpc.html" %}
+{% else %}
+
+<style>
+	.print-format {
+		padding: 2mm;
+		font-size: 8.0pt !important;
+	}
+	.print-format td {
+		vertical-align:middle !important;
+	}
+	.letter-head {
+  transform: scale(1) !important;
+	}
+	.letter-head-footer {
+		transform: scale(0.5) !important;
+			}
+</style>
+
+<h2 class="text-center">{%= __("Statement of Accounts") %}</h2>
+<h4 class="text-center">
+	{%= filters.party %} - {%= filters.party_name %}
+	<h4 class="text-center small">
+		{%= filters.party_address %}
+	</h4>
+	
+</h4>
+
+<h6 class="text-center">
+	{% if (filters.tax_id) { %}
+	{%= __("Tax Id: ")%}	{%= filters.tax_id %}
+	{% } %}
+</h6>
+
+<h5 class="text-center">
+	{%= frappe.datetime.str_to_user(filters.from_date) %}
+	{%= __("to") %}
+	{%= frappe.datetime.str_to_user(filters.to_date) %}
+</h5>
+<hr>
+
+
+
+<table class="table">
+	<thead>
+		<tr>
+			<th style="width: 10%">{%= __("Invoice Date") %}</th>
+			<th style="width: 12%">{%= __("Ref") %}</th>
+			<th style="width: 10%">{%= __("Against Notes") %}</th>
+			<th style="width: 5%">{%= __("Job No") %}</th>
+			
+			{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+				<th style="width: 5%">{%= __("Vessel") %}</th>
+			{% endif %}
+	
+			{% if filters.company == "PT. ASIA GROW LOGISTICS" %}
+				<th style="width: 5%">{%= __("HBL No.") %}</th>
+				<th style="width: 5%">{%= __("MBL No.") %}</th>
+			{% endif %}
+	
+			<th style="width: 28%">{%= __("Party") %}</th>
+			
+			<th style="width: 10%">{%= __("Debit") %}</th>
+			<th style="width: 10%">{%= __("Credit") %}</th>
+			<th style="width: 10%">{%= __("Outstanding Amt") %}</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		{% for(var i=0, l=data.length; i<l; i++) { %}
+			<tr>
+			{% if(data[i].posting_date) { %}
+				<td>{%= frappe.datetime.str_to_user(data[i].invoice_date) %}</td>
+				<td>{%= data[i].voucher_type %}
+					<br>{%= data[i].voucher_no %}</td>
+
+					
+				<td>{%= data[i].against_voucher %}</td>
+				<td>{%= data[i].job_no %}</td>
+				{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+					<td>{%= data[i].vessel %}</td>
+				{% endif %}
+				{% if filters.company == "PT. ASIA GROW LOGISTICS" %}
+					<td>{%= data[i].awb_bl_no %}</td>
+					<td>{%= data[i].obl_no %}</td>
+				{% endif %}
+
+				<td>
+					{% if(!(filters.party || filters.account)) { %}
+						{%= data[i].party || data[i].account %}
+						<br>
+					{% } %}
+
+					{{ __("Against") }}: {%= data[i].against %}
+					<br><!-- {%= __("Remarks") %}: {%= data[i].remarks %}-->
+					{% if(data[i].bill_no) { %}
+						<br>{%= __("Supplier Invoice No") %}: {%= data[i].bill_no %}
+					{% } %}
+				</td>
+				<!-- Added to test the account currency display -->
+				
+					<td style="text-align: right">
+
+						{%= format_currency(data[i].debit_in_account_currency, data[i].account_currency) %}</td>
+						<!--{%= data[i].debit_in_account_currency %}-->
+					<td style="text-align: right">
+						{%= format_currency(data[i].credit_in_account_currency, data[i].account_currency) %}</td>
+						<!--{%= data[i].credit_in_account_currency %}</td>-->
+			{% } else { %}
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				{% if filters.company == "WPC Marine & Offshore Services Pte Ltd" %}
+					<td></td>
+				{% endif %}
+				{% if filters.company == "PT. ASIA GROW LOGISTICS" %}
+					<td></td>
+					<td></td>
+				{% endif %}
+			
+				<td><b>{%= frappe.format(data[i].account, {fieldtype: "Link"}) || "&nbsp;" %}</b></td>
+				<td style="text-align: right">
+					{%= data[i].account && format_currency(data[i].debit_in_account_currency, data[i].account_currency) %}
+					<!--{%= data[i].account && data[i].debit_in_account_currency %}-->
+				</td>
+				<td style="text-align: right">
+					{%= data[i].account && format_currency(data[i].credit_in_account_currency, data[i].account_currency) %}
+					<!--{%= data[i].account && data[i].credit_in_account_currency %}-->
+				</td>
+			{% } %}
+				<td style="text-align: right">
+					{%= format_currency(data[i].balance_in_account_currency, data[i].account_currency) %}
+					<!--{%= data[i].balance_in_account_currency %}-->
+				</td>
+				
+			</tr>
+		{% } %}
+	</tbody>
+</table>
+
+
+	{%
+	var outstanding = 0;
+	var range1 = 0;
+	var range2 = 0;
+	var range3 = 0;
+	var range4 = 0;
+	var total_due = 0;
+	
+	var filterObj = {"range1":30,"range2":60,"range3":90,"range4":120};
+
+	if (filters.company) {
+		filterObj.company = filters.company;
+	}
+
+	if (filters.party) {
+		filterObj.customer = filters.party;
+	}
+
+	if (filters.show_future_payments) {
+		filterObj.show_future_payments = filters.show_future_payments;
+	}
+	
+	if (filters.tax_id) {
+		filterObj.tax_id = filters.tax_id;
+	}
+	
+	if (filters.ageing_based_on) {
+		filterObj.ageing_based_on = filters.ageing_based_on;
+	}
+	
+	if (filters.payment_terms) {
+		filterObj.payment_terms = filters.payment_terms;
+	}
+	
+	if (filters.credit_limit) {
+		filterObj.credit_limit = filters.credit_limit;
+	}
+	
+	if (filters.show_sales_person) {
+		filterObj.show_sales_person = filters.show_sales_person;
+	}
+
+	if (filters.report_date) {
+		filterObj.report_date = filters.report_date;
+	}
+
+	frappe.call({
+		method: "frappe.desk.query_report.run",
+		args: {
+			report_name: "Accounts Receivable",
+			filters:filterObj,
+			fields: ["outstanding","range1","range2","range3","range4","total_due","currency"]
+		},
+		async: false,
+		callback: function (r) {
+			if (r.message && r.message.result) {
+				var result = r.message.result;
+				for (var i = 0; i < result.length-1; i++) {
+					outstanding += parseFloat(r.message.result[i].outstanding);
+					range1 += parseFloat(r.message.result[i].range1);
+					range2 += parseFloat(r.message.result[i].range2);
+					range3 += parseFloat(r.message.result[i].range3);
+					range4 += parseFloat(r.message.result[i].range4);
+					total_due += parseFloat(r.message.result[i].total_due);
+					if (r.message && r.message.result && r.message.result.length > 0 && r.message.result[0].currency) {
+						currencyfooter = r.message.result[0].currency;
+					}
+				}
+			}
+		}	
+	});
+	
+	
+%}
+
+
+<table class="table table-bordered">
+	<thead>
+	  <tr>
+		<th>Outstanding</th>
+		<th>0-30 Days</th>
+		<th>31-60 Days</th>
+		<th>61-90 Days</th>
+		<th>91-120 Days</th>
+		<th>Total Due</th>
+
+	  </tr>
+	</thead>
+	<tbody>
+	  <tr>
+		<td style="display: table-cell">{{ format_currency(outstanding, currencyfooter) }}</td>
+		<td style="display: table-cell">{{ format_currency(range1, currencyfooter) }}</td>
+		<td style="display: table-cell">{{ format_currency(range2, currencyfooter) }}</td>
+		<td style="display: table-cell">{{ format_currency(range3, currencyfooter) }}</td>
+		<td style="display: table-cell">{{ format_currency(range4, currencyfooter) }}</td>
+		<td style="display: table-cell">{{ format_currency(total_due, currencyfooter) }}</td>
+	
+	  </tr>
+	</tbody>
+  </table>
+
+{% endif %}
+
+	<!--<p class="text-right text-muted">{{ __("Printed On ") }}{%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}</p>-->
+
