@@ -14,8 +14,9 @@ Open your command-line interface.
 Run the following command to fetch the repository:
 ````
 bench get-app https://github.com/felixlu07/custom_reports.git
-
+````
 Install the app on your desired site by running the following command, replacing (sitename) with the actual name of your site:
+````
 bench --site (sitename) install-app custom_reports
 ````
 Finally, clear the cache by executing the following command:
